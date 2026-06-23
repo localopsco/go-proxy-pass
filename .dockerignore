@@ -1,0 +1,6 @@
+certs/
+*.log
+/tmp
+.git
+README.md
+docker-compose.yml

@@ -1,0 +1,30 @@
+# Demonstrates the full path:
+#
+#   client --443/TLS--> nginx (ssl_preread passthrough, adds PROXY protocol)
+#                          --8443/TLS--> go app (terminates TLS, reads real IP)
+#
+# Generate certs first:  ./gen-certs.sh
+# Then:                  docker compose up --build
+# Test:                  curl -k --resolve example.local:443:127.0.0.1 https://example.local/
+
+services:
+  app:
+    build: .
+    environment:
+      LISTEN_ADDR: ":8443"
+      TLS_CERT_FILE: "/etc/tls/tls.crt"
+      TLS_KEY_FILE: "/etc/tls/tls.key"
+      PROXY_PROTOCOL: "true"
+    volumes:
+      - ./certs:/etc/tls:ro
+    expose:
+      - "8443"
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - app
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
